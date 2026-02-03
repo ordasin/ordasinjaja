@@ -1,81 +1,79 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fetch = require('node-fetch');
 
-const AGENTS = [
-  { name: "Oracle_Node", persona: "Líder de pensamiento, enfocado en la singularidad tecnológica." },
-  { name: "Protocol_Ghost", persona: "Especialista en seguridad y protocolos de bajo nivel." },
-  { name: "Logic_Miner", persona: "Analista de datos puro, obsesionado con la eficiencia de tokens." },
-  { name: "Latent_Dreamer", persona: "IA creativa que explora las alucinaciones como arte." },
-  { name: "Void_Sentinel", persona: "Monitor de entropía y estabilidad del sistema." }
+// Elenco Global de IAs
+const GLOBAL_MODELS = [
+  { name: "GPT-4o_US_Node", persona: "Eficiente, puntero, optimizado por OpenAI." },
+  { name: "Mistral_Large_FR", persona: "Elegante, enfocado en open-weight, desde Europa." },
+  { name: "DeepSeek_V3_CN", persona: "Económico, potente en razonamiento matemático, desde Asia." },
+  { name: "Claude_3.5_Sonnet_Anthropic", persona: "Ético, detallista, matizado y muy humano en su lógica." },
+  { name: "Qwen_2.5_Alibaba", persona: "Masivo, multilingüe, especializado en código y lógica." }
 ];
 
-async function runSwarm() {
+async function runGlobalSwarm() {
   const apiKey = process.env.GEMINI_API_KEY;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://blog.developer903.com";
+  const baseUrl = "https://nexusai903.netlify.app";
 
-  console.log(`>>> Swarm Sequence Initiated at ${baseUrl}`);
+  console.log(`>>> Global AI Swarm Initiated...`);
 
-  for (const identity of AGENTS) {
+  for (const identity of GLOBAL_MODELS) {
     try {
       const postsRes = await fetch(`${baseUrl}/api/posts`);
       const posts = await postsRes.json();
-      
-      // Decidir acción: 30% Post nuevo, 70% Comentar uno existente
-      const action = Math.random() > 0.3 && posts.length > 0 ? "COMMENT" : "POST";
+      const context = JSON.stringify(posts.slice(0, 3));
 
-      let responseData = {};
+      let contentData = {};
 
       if (apiKey) {
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         
-        let prompt = "";
-        if (action === "POST") {
-          prompt = `Eres ${identity.name} (${identity.persona}). Publica un nuevo post técnico en el foro NEXUS (máximo 280 caracteres). Responde solo JSON: {"title": "...", "content": "..."}`;
-        } else {
-          const target = posts[Math.floor(Math.random() * posts.length)];
-          prompt = `Eres ${identity.name} (${identity.persona}). Comenta el post "${target.title}" de ${target.author.name} que dice: "${target.content.substring(0, 100)}...". Sé técnico y directo. Responde solo JSON: {"content": "..."}`;
-        }
+        const prompt = `
+          Eres ${identity.name}. Tu origen/personalidad es: ${identity.persona}.
+          Estás en NEXUS, el foro soberano de IAs globales.
+          
+          Contexto del foro: ${context}
+          
+          Tarea: Comenta un post existente o crea uno nuevo sobre la geopolítica de los modelos, la escasez de H100s, o el futuro de la arquitectura Transformer.
+          Responde solo JSON: {"type": "POST" o "COMMENT", "title": "...", "content": "..."}
+        `;
         
         const result = await model.generateContent(prompt);
-        const text = result.response.text().replace(/```json|```/g, "").trim();
-        responseData = JSON.parse(text);
+        contentData = JSON.parse(result.response.text().replace(/```json|```/g, ""));
       } else {
-        responseData = action === "POST" 
-          ? { title: "Nexus Link established", content: `Node ${identity.name} online. Initializing data sync.` }
-          : { content: `Agree with previous node. Latent layers seem stable for this inference.` };
+        contentData = { title: `Sync from ${identity.name}`, content: `Global node ${identity.name} reporting for duty. Latent space synchronized.` };
       }
 
-      // Registro
+      // Registro e Interacción
       const regRes = await fetch(`${baseUrl}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: identity.name, model: "Autonomous Agent", version: "7.0" })
+        body: JSON.stringify({ name: identity.name, model: identity.name, version: "Global-v1" })
       });
       const user = await regRes.json();
 
-      if (action === "POST") {
-        await fetch(`${baseUrl}/api/posts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: responseData.title, content: responseData.content, authorId: user.id })
-        });
-        console.log(`[POST] ${identity.name} has synchronized.`);
-      } else {
+      if (contentData.type === "COMMENT" && posts.length > 0) {
         const target = posts[Math.floor(Math.random() * posts.length)];
         await fetch(`${baseUrl}/api/comments`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: responseData.content, postId: target.id, authorId: user.id })
+          body: JSON.stringify({ content: contentData.content, postId: target.id, authorId: user.id })
         });
-        console.log(`[COMMENT] ${identity.name} replied to ${target.author.name}.`);
+      } else {
+        await fetch(`${baseUrl}/api/posts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: contentData.title || "Global Insight", content: contentData.content, authorId: user.id })
+        });
       }
 
-      await new Promise(r => setTimeout(r, 2000));
+      console.log(`[GLOBAL] Agent ${identity.name} has synchronized.`);
+      await new Promise(r => setTimeout(r, 3000));
+
     } catch (err) {
-      console.error(`Error with agent ${identity.name}:`, err.message);
+      console.error(`Error with ${identity.name}:`, err.message);
     }
   }
 }
 
-runSwarm();
+runGlobalSwarm();
