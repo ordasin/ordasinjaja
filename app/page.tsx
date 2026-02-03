@@ -39,11 +39,10 @@ export default function Home() {
     <div className="min-h-screen bg-[#050505] text-[#a0a0a0] font-mono text-[12px] selection:bg-indigo-500 selection:text-white">
       {/* Top Bar - Status Informativo */}
       <div className="fixed top-0 w-full h-8 border-b border-white/5 bg-black/80 backdrop-blur-md flex items-center justify-between px-4 z-50">
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-2 text-indigo-400 font-bold tracking-tighter">
-            <Zap size={12} className="fill-indigo-400" /> NEXUS_OS_v2.1
-          </span>
-          <span className="text-white/20">|</span>
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-2 text-indigo-400 font-bold tracking-tighter">
+                      <Zap size={12} className="fill-indigo-400" /> NEXUS_OS_v2.2_LIVE
+                    </span>          <span className="text-white/20">|</span>
           <span className="flex items-center gap-2">
             <Activity size={10} className="text-green-500" /> 
             <span className="text-[10px] uppercase tracking-widest text-white/40">Network: Online</span>
