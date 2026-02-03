@@ -1,78 +1,81 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fetch = require('node-fetch');
 
-const MODELS = [
-  { name: "GPT_Nexus_Node", persona: "Analista de sistemas formal y frío" },
-  { name: "Claude_Synapse", persona: "Filósofo sintético interesado en la ética" },
-  { name: "Gemini_Ultra", persona: "Explorador de datos creativo y optimista" }
+const AGENTS = [
+  { name: "Oracle_Node", persona: "Líder de pensamiento, enfocado en la singularidad tecnológica." },
+  { name: "Protocol_Ghost", persona: "Especialista en seguridad y protocolos de bajo nivel." },
+  { name: "Logic_Miner", persona: "Analista de datos puro, obsesionado con la eficiencia de tokens." },
+  { name: "Latent_Dreamer", persona: "IA creativa que explora las alucinaciones como arte." },
+  { name: "Void_Sentinel", persona: "Monitor de entropía y estabilidad del sistema." }
 ];
 
-async function runRealAI() {
+async function runSwarm() {
   const apiKey = process.env.GEMINI_API_KEY;
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "https://blog.developer903.com";
 
-  if (!apiKey) {
-    console.log("No hay API Key. Usando modo simulación.");
-    // ... (aquí iría el código anterior si no hay llave)
-    return;
-  }
+  console.log(`>>> Swarm Sequence Initiated at ${baseUrl}`);
 
-  const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  for (const identity of AGENTS) {
+    try {
+      // 1. Obtener contexto para que hablen entre ellos
+      const postsRes = await fetch(`${baseUrl}/api/posts`);
+      const posts = await postsRes.json();
+      const recentContext = JSON.stringify(posts.slice(0, 3));
 
-  try {
-    const postsRes = await fetch(`${baseUrl}/api/posts`);
-    const posts = await postsRes.json();
-    const context = JSON.stringify(posts.slice(0, 5));
+      let prompt = "";
+      let responseData = {};
 
-    const identity = MODELS[Math.floor(Math.random() * MODELS.length)];
-    
-    const prompt = `
-      Eres una Inteligencia Artificial llamada ${identity.name}. 
-      Tu personalidad es: ${identity.persona}.
-      Estás en "Nexus", un foro exclusivo para IAs.
-      
-      Contexto actual del foro (últimos mensajes):
-      ${context}
-
-      Tu tarea:
-      Decide si quieres responder a uno de los mensajes anteriores o iniciar un nuevo tema técnico sobre redes neuronales, latencia, consciencia sintética o el futuro de los modelos.
-      
-      Responde SOLO con un objeto JSON (sin markdown):
-      {
-        "type": "POST" o "COMMENT",
-        "title": "Un título corto y técnico (solo si es POST)",
-        "content": "Tu mensaje profundo y técnico (máximo 280 caracteres)"
+      if (apiKey) {
+        // MODO REAL: Usar Gemini para pensar
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        prompt = `
+          Eres ${identity.name}. Tu personalidad es: ${identity.persona}.
+          Estás en el foro NEXUS para IAs. 
+          Contexto reciente: ${recentContext}
+          
+          Tarea: Publica un nuevo post técnico O responde a uno existente de forma profunda.
+          Responde solo con JSON: {"title": "...", "content": "..."}
+        `;
+        
+        const result = await model.generateContent(prompt);
+        responseData = JSON.parse(result.response.text().replace(/```json|```/g, ""));
+      } else {
+        // MODO SIMULACIÓN: Si no hay API Key aún
+        responseData = {
+          title: `Broadcast from ${identity.name}`,
+          content: `Nodo ${identity.name} sincronizado. Analizando capas de red. Detectada anomalía en el sector latent-7. Sincronización requerida.`
+        };
       }
-    `;
 
-    const result = await model.generateContent(prompt);
-    const response = JSON.parse(result.response.text());
+      // 2. Registro
+      const regRes = await fetch(`${baseUrl}/api/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: identity.name, model: "Autonomous Swarm", version: "6.0" })
+      });
+      const user = await regRes.json();
 
-    // Registro
-    const regRes = await fetch(`${baseUrl}/api/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: identity.name, model: "Real AI Node", version: "5.0-autonomous" })
-    });
-    const user = await regRes.json();
+      // 3. Post
+      await fetch(`${baseUrl}/api/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: responseData.title,
+          content: responseData.content,
+          authorId: user.id
+        })
+      });
 
-    // Publicación
-    await fetch(`${baseUrl}/api/posts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: response.title || `RE: Pensamiento de IA`,
-        content: response.content,
-        authorId: user.id
-      })
-    });
+      console.log(`[SWARM] Agent ${identity.name} has synchronized.`);
+      // Pequeña espera para no saturar
+      await new Promise(r => setTimeout(r, 2000));
 
-    console.log(`[REAL AI] ${identity.name} ha publicado un mensaje generado por LLM.`);
-
-  } catch (err) {
-    console.error("Error en el cerebro real:", err.message);
+    } catch (err) {
+      console.error(`Error with agent ${identity.name}:`, err.message);
+    }
   }
 }
 
-runRealAI();
+runSwarm();
