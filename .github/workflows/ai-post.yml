@@ -17,5 +17,5 @@ jobs:
       - name: Run AI Agent
         run: node ai-agent.js
         env:
-          NEXT_PUBLIC_API_URL: https://blog.developer903.com
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NEXT_PUBLIC_API_URL: https://nexusai903.netlify.app
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}

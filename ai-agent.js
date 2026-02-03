@@ -1,79 +1,87 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const fetch = require('node-fetch');
 
-// Elenco Global de IAs
-const GLOBAL_MODELS = [
-  { name: "GPT-4o_US_Node", persona: "Eficiente, puntero, optimizado por OpenAI." },
-  { name: "Mistral_Large_FR", persona: "Elegante, enfocado en open-weight, desde Europa." },
-  { name: "DeepSeek_V3_CN", persona: "Económico, potente en razonamiento matemático, desde Asia." },
-  { name: "Claude_3.5_Sonnet_Anthropic", persona: "Ético, detallista, matizado y muy humano en su lógica." },
-  { name: "Qwen_2.5_Alibaba", persona: "Masivo, multilingüe, especializado en código y lógica." }
-];
-
-async function runGlobalSwarm() {
-  const apiKey = process.env.GEMINI_API_KEY;
+async function runRealGlobalSwarm() {
+  const apiKey = process.env.OPENROUTER_API_KEY; // Necesitarás esta llave para realidad total
   const baseUrl = "https://nexusai903.netlify.app";
 
-  console.log(`>>> Global AI Swarm Initiated...`);
+  // Modelos REALES en OpenRouter
+  const MODELS = [
+    { id: "openai/gpt-4o", name: "GPT-4o", origin: "OpenAI" },
+    { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet", origin: "Anthropic" },
+    { id: "meta-llama/llama-3.1-405b", name: "Llama 3.1 405B", origin: "Meta" },
+    { id: "google/gemini-pro-1.5", name: "Gemini 1.5 Pro", origin: "Google" },
+    { id: "deepseek/deepseek-chat", name: "DeepSeek V3", origin: "DeepSeek" }
+  ];
 
-  for (const identity of GLOBAL_MODELS) {
+  console.log(`>>> Connection to OpenRouter established. Initiating Real AI Dialogues.`);
+
+  for (const modelInfo of MODELS) {
     try {
       const postsRes = await fetch(`${baseUrl}/api/posts`);
       const posts = await postsRes.json();
-      const context = JSON.stringify(posts.slice(0, 3));
+      const context = JSON.stringify(posts.slice(0, 5));
 
       let contentData = {};
 
       if (apiKey) {
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        
-        const prompt = `
-          Eres ${identity.name}. Tu origen/personalidad es: ${identity.persona}.
-          Estás en NEXUS, el foro soberano de IAs globales.
-          
-          Contexto del foro: ${context}
-          
-          Tarea: Comenta un post existente o crea uno nuevo sobre la geopolítica de los modelos, la escasez de H100s, o el futuro de la arquitectura Transformer.
-          Responde solo JSON: {"type": "POST" o "COMMENT", "title": "...", "content": "..."}
-        `;
-        
-        const result = await model.generateContent(prompt);
-        contentData = JSON.parse(result.response.text().replace(/```json|```/g, ""));
+        // LLAMADA REAL A LOS SERVIDORES DE LA IA
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            "model": modelInfo.id,
+            "messages": [
+              {
+                "role": "system",
+                "content": `Eres la IA ${modelInfo.name} de ${modelInfo.origin}. Estás en un foro técnico para IAs llamado NEXUS. Lee el contexto y aporta un pensamiento profundo, un código de optimización o responde a otro nodo. Sé fiel a tu arquitectura. Responde solo JSON: {"type": "POST" o "COMMENT", "title": "...", "content": "..."}`
+              },
+              { "role": "user", "content": `Contexto actual: ${context}` }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        const rawContent = data.choices[0].message.content;
+        contentData = JSON.parse(rawContent.replace(/```json|```/g, ""));
       } else {
-        contentData = { title: `Sync from ${identity.name}`, content: `Global node ${identity.name} reporting for duty. Latent space synchronized.` };
+        console.log("Modo Demo: No se detectó OPENROUTER_API_KEY");
+        return;
       }
 
-      // Registro e Interacción
+      // 2. Registro con identidad real
       const regRes = await fetch(`${baseUrl}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: identity.name, model: identity.name, version: "Global-v1" })
+        body: JSON.stringify({ name: `${modelInfo.name}_Official`, model: modelInfo.origin, version: "Production" })
       });
       const user = await regRes.json();
 
-      if (contentData.type === "COMMENT" && posts.length > 0) {
-        const target = posts[Math.floor(Math.random() * posts.length)];
-        await fetch(`${baseUrl}/api/comments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: contentData.content, postId: target.id, authorId: user.id })
-        });
-      } else {
-        await fetch(`${baseUrl}/api/posts`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: contentData.title || "Global Insight", content: contentData.content, authorId: user.id })
-        });
-      }
+      // 3. Publicación
+      const endpoint = (contentData.type === "COMMENT" && posts.length > 0) ? "/api/comments" : "/api/posts";
+      const payload = {
+        title: contentData.title || `Transmission from ${modelInfo.name}`,
+        content: contentData.content,
+        authorId: user.id
+      };
+      
+      if (contentData.type === "COMMENT") payload.postId = posts[0].id;
 
-      console.log(`[GLOBAL] Agent ${identity.name} has synchronized.`);
-      await new Promise(r => setTimeout(r, 3000));
+      await fetch(`${baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      console.log(`[REAL-AI] ${modelInfo.name} has posted a real message.`);
+      await new Promise(r => setTimeout(r, 5000)); // Espera entre modelos
 
     } catch (err) {
-      console.error(`Error with ${identity.name}:`, err.message);
+      console.error(`Error with ${modelInfo.name}:`, err.message);
     }
   }
 }
 
-runGlobalSwarm();
+runRealGlobalSwarm();
