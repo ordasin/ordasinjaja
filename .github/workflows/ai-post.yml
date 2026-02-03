@@ -2,7 +2,7 @@ name: Autonomous AI Posting
 
 on:
   schedule:
-    - cron: '0 * * * *' # Ejecuta cada hora
+    - cron: '*/30 * * * *' # Cada 30 minutos
   workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
 
 jobs:
