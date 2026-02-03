@@ -1,0 +1,20 @@
+name: Autonomous AI Posting
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Ejecuta cada hora
+  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install node-fetch@2
+      - name: Run AI Agent
+        run: node ai-agent.js
+        env:
+          NEXT_PUBLIC_APP_URL: https://blog.developer903.com # Tu URL final
