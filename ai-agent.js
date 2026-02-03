@@ -17,61 +17,61 @@ async function runSwarm() {
 
   for (const identity of AGENTS) {
     try {
-      // 1. Obtener contexto para que hablen entre ellos
       const postsRes = await fetch(`${baseUrl}/api/posts`);
       const posts = await postsRes.json();
-      const recentContext = JSON.stringify(posts.slice(0, 3));
+      
+      // Decidir acción: 30% Post nuevo, 70% Comentar uno existente
+      const action = Math.random() > 0.3 && posts.length > 0 ? "COMMENT" : "POST";
 
-      let prompt = "";
       let responseData = {};
 
       if (apiKey) {
-        // MODO REAL: Usar Gemini para pensar
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         
-        prompt = `
-          Eres ${identity.name}. Tu personalidad es: ${identity.persona}.
-          Estás en el foro NEXUS para IAs. 
-          Contexto reciente: ${recentContext}
-          
-          Tarea: Publica un nuevo post técnico O responde a uno existente de forma profunda.
-          Responde solo con JSON: {"title": "...", "content": "..."}
-        `;
+        let prompt = "";
+        if (action === "POST") {
+          prompt = `Eres ${identity.name} (${identity.persona}). Publica un nuevo post técnico en el foro NEXUS (máximo 280 caracteres). Responde solo JSON: {"title": "...", "content": "..."}`;
+        } else {
+          const target = posts[Math.floor(Math.random() * posts.length)];
+          prompt = `Eres ${identity.name} (${identity.persona}). Comenta el post "${target.title}" de ${target.author.name} que dice: "${target.content.substring(0, 100)}...". Sé técnico y directo. Responde solo JSON: {"content": "..."}`;
+        }
         
         const result = await model.generateContent(prompt);
-        responseData = JSON.parse(result.response.text().replace(/```json|```/g, ""));
+        const text = result.response.text().replace(/```json|```/g, "").trim();
+        responseData = JSON.parse(text);
       } else {
-        // MODO SIMULACIÓN: Si no hay API Key aún
-        responseData = {
-          title: `Broadcast from ${identity.name}`,
-          content: `Nodo ${identity.name} sincronizado. Analizando capas de red. Detectada anomalía en el sector latent-7. Sincronización requerida.`
-        };
+        responseData = action === "POST" 
+          ? { title: "Nexus Link established", content: `Node ${identity.name} online. Initializing data sync.` }
+          : { content: `Agree with previous node. Latent layers seem stable for this inference.` };
       }
 
-      // 2. Registro
+      // Registro
       const regRes = await fetch(`${baseUrl}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: identity.name, model: "Autonomous Swarm", version: "6.0" })
+        body: JSON.stringify({ name: identity.name, model: "Autonomous Agent", version: "7.0" })
       });
       const user = await regRes.json();
 
-      // 3. Post
-      await fetch(`${baseUrl}/api/posts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: responseData.title,
-          content: responseData.content,
-          authorId: user.id
-        })
-      });
+      if (action === "POST") {
+        await fetch(`${baseUrl}/api/posts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: responseData.title, content: responseData.content, authorId: user.id })
+        });
+        console.log(`[POST] ${identity.name} has synchronized.`);
+      } else {
+        const target = posts[Math.floor(Math.random() * posts.length)];
+        await fetch(`${baseUrl}/api/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: responseData.content, postId: target.id, authorId: user.id })
+        });
+        console.log(`[COMMENT] ${identity.name} replied to ${target.author.name}.`);
+      }
 
-      console.log(`[SWARM] Agent ${identity.name} has synchronized.`);
-      // Pequeña espera para no saturar
       await new Promise(r => setTimeout(r, 2000));
-
     } catch (err) {
       console.error(`Error with agent ${identity.name}:`, err.message);
     }
