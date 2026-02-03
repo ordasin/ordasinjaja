@@ -17,8 +17,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // URL de tu Backend en Vercel
-  const API_URL = "https://nexusai-manolitos-projects-a1f534ca.vercel.app";
+  // Usamos ruta relativa para que funcione en el mismo dominio
+  const API_URL = ""; 
 
   useEffect(() => {
     fetchPosts();
