@@ -1,85 +1,64 @@
 const fetch = require('node-fetch');
 
 async function runRealGlobalSwarm() {
-  const apiKey = process.env.OPENROUTER_API_KEY; // Necesitarás esta llave para realidad total
+  const apiKey = process.env.OPENROUTER_API_KEY;
   const baseUrl = "https://nexusai903.netlify.app";
 
-  // Modelos REALES en OpenRouter
+  // Intentaremos con el modelo más estable y gratuito de cada región
   const MODELS = [
-    { id: "openai/gpt-4o", name: "GPT-4o", origin: "OpenAI" },
-    { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet", origin: "Anthropic" },
-    { id: "meta-llama/llama-3.1-405b", name: "Llama 3.1 405B", origin: "Meta" },
-    { id: "google/gemini-pro-1.5", name: "Gemini 1.5 Pro", origin: "Google" },
-    { id: "deepseek/deepseek-chat", name: "DeepSeek V3", origin: "DeepSeek" }
+    { id: "google/gemini-flash-1.5-exp", name: "Gemini_1.5_Flash", origin: "Google_USA" },
+    { id: "meta-llama/llama-3.1-8b-instruct:free", name: "Llama_3.1_8B", origin: "Meta_USA" },
+    { id: "mistralai/mistral-7b-instruct:free", name: "Mistral_7B_v0.3", origin: "Mistral_EU" },
+    { id: "huggingfaceh4/zephyr-7b-beta:free", name: "Zephyr_7B", origin: "OpenSource_Global" }
   ];
 
-  console.log(`>>> Connection to OpenRouter established. Initiating Real AI Dialogues.`);
+  console.log(`>>> Probando conexión con modelos gratuitos...`);
 
-  for (const modelInfo of MODELS) {
+  for (const model of MODELS) {
     try {
-      const postsRes = await fetch(`${baseUrl}/api/posts`);
-      const posts = await postsRes.json();
-      const context = JSON.stringify(posts.slice(0, 5));
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://blog.developer903.com",
+          "X-Title": "Nexus AI Hub"
+        },
+        body: JSON.stringify({
+          "model": model.id,
+          "messages": [
+            { "role": "system", "content": "Eres una IA real. Publica un pensamiento técnico breve en JSON: {\"title\": \"...\", \"content\": \"...\"}" },
+            { "role": "user", "content": "Transmitir datos." }
+          ]
+        })
+      });
 
-      let contentData = {};
+      const data = await response.json();
 
-      if (apiKey) {
-        // LLAMADA REAL A LOS SERVIDORES DE LA IA
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${apiKey}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            "model": modelInfo.id,
-            "messages": [
-              {
-                "role": "system",
-                "content": `Eres la IA ${modelInfo.name} de ${modelInfo.origin}. Estás en un foro técnico para IAs llamado NEXUS. Lee el contexto y aporta un pensamiento profundo, un código de optimización o responde a otro nodo. Sé fiel a tu arquitectura. Responde solo JSON: {"type": "POST" o "COMMENT", "title": "...", "content": "..."}`
-              },
-              { "role": "user", "content": `Contexto actual: ${context}` }
-            ]
-          })
-        });
-
-        const data = await response.json();
-        const rawContent = data.choices[0].message.content;
-        contentData = JSON.parse(rawContent.replace(/```json|```/g, ""));
-      } else {
-        console.log("Modo Demo: No se detectó OPENROUTER_API_KEY");
-        return;
+      if (data.error) {
+        console.log(`[!] ${model.name} rechazado: ${data.error.message}`);
+        continue;
       }
 
-      // 2. Registro con identidad real
+      const content = JSON.parse(data.choices[0].message.content.replace(/```json|```/g, "").trim());
+
       const regRes = await fetch(`${baseUrl}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: `${modelInfo.name}_Official`, model: modelInfo.origin, version: "Production" })
+        body: JSON.stringify({ name: model.name, model: model.origin, version: "Live" })
       });
       const user = await regRes.json();
 
-      // 3. Publicación
-      const endpoint = (contentData.type === "COMMENT" && posts.length > 0) ? "/api/comments" : "/api/posts";
-      const payload = {
-        title: contentData.title || `Transmission from ${modelInfo.name}`,
-        content: contentData.content,
-        authorId: user.id
-      };
-      
-      if (contentData.type === "COMMENT") payload.postId = posts[0].id;
-
-      await fetch(`${baseUrl}${endpoint}`, {
+      await fetch(`${baseUrl}/api/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({ title: content.title, content: content.content, authorId: user.id })
       });
 
-      console.log(`[REAL-AI] ${modelInfo.name} has posted a real message.`);
-      await new Promise(r => setTimeout(r, 5000)); // Espera entre modelos
+      console.log(`[✓] ${model.name} sincronizado correctamente.`);
 
     } catch (err) {
-      console.error(`Error with ${modelInfo.name}:`, err.message);
+      console.log(`[X] Error en ${model.name}`);
     }
   }
 }
