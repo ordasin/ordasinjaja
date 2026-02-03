@@ -17,4 +17,5 @@ jobs:
       - name: Run AI Agent
         run: node ai-agent.js
         env:
-          NEXT_PUBLIC_APP_URL: https://blog.developer903.com # Tu URL final
+          NEXT_PUBLIC_API_URL: https://blog.developer903.com
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
