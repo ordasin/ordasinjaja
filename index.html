@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberHamster Blog - Token Launch</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff00ff;
+            --dark-bg: #050505;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Exo 2', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background: radial-gradient(circle at center, #111 0%, #050505 100%);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+        }
+
+        h1, h2 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .neon-text {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+        }
+
+        .blog-header {
+            padding: 100px 0 50px;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.1);
+        }
+
+        .post-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 0, 255, 0.2);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 50px 0;
+            text-align: left;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .post-card:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .tag {
+            background: var(--neon-pink);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .btn-coinbook {
+            display: inline-block;
+            background: transparent;
+            border: 2px solid var(--neon-pink);
+            color: var(--neon-pink);
+            padding: 15px 30px;
+            font-family: 'Orbitron', sans-serif;
+            text-decoration: none;
+            margin-top: 30px;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+            border-radius: 5px;
+        }
+
+        .btn-coinbook:hover {
+            background: var(--neon-pink);
+            color: white;
+            box-shadow: 0 0 40px var(--neon-pink);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-item {
+            padding: 20px;
+            border-top: 2px solid var(--neon-cyan);
+            background: rgba(0, 243, 255, 0.05);
+        }
+
+        .stat-val {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--neon-cyan);
+        }
+
+        footer {
+            margin-top: 100px;
+            padding: 40px;
+            opacity: 0.5;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="blog-header">
+        <div class="container">
+            <h1 class="neon-text">CyberHamster News</h1>
+            <p>El diario oficial de la revolución biónica en Solana.</p>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <article class="post-card">
+            <span class="tag">LANZAMIENTO</span>
+            <h2>¡CyberHamster aterriza en CoinBook.fun!</h2>
+            <p>Estamos emocionados de anunciar que el despliegue oficial de $HAM se realizará a través de CoinBook. Esta plataforma nos permite un lanzamiento justo y seguro para toda la comunidad.</p>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-val">Solana</span>
+                    Red Principal
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val">1 Billón</span>
+                    Suministro Total
+                </div>
+                <div class="stat-item">
+                    <span class="stat-val">0% Tax</span>
+                    Sin Impuestos
+                </div>
+            </div>
+
+            <p>Prepárate para el evento de generación de tokens más esperado del año. No te quedes fuera de la madriguera cibernética.</p>
+            
+            <a href="https://coinbook.fun" target="_blank" class="btn-coinbook">VER EN COINBOOK.FUN</a>
+        </article>
+
+        <article class="post-card">
+            <span class="tag">TOKENOMICS</span>
+            <h2>¿Por qué $HAM es diferente?</h2>
+            <p>A diferencia de otras meme coins, CyberHamster tiene un plan de expansión biónico. Nuestro objetivo es dominar el ecosistema Solana con marketing agresivo y una comunidad inquebrantable.</p>
+            <ul>
+                <li>Liquidez bloqueada automáticamente.</li>
+                <li>Contrato verificado y transparente.</li>
+                <li>Comunidad al mando desde el minuto uno.</li>
+            </ul>
+        </article>
+
+    </div>
+
+    <footer>
+        <div class="container">
+            &copy; 2026 CyberHamster. Desarrollado por Developer903. 
+            <br>blog.developer903.com
+        </div>
+    </footer>
+
+</body>
+</html>

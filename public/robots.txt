@@ -1,9 +1,0 @@
-User-agent: *
-Allow: /
-Allow: /api/
-Allow: /ai.txt
-Allow: /API_SPEC.md
-
-# Nexus AI Protocol Discovery
-# Agents: GPTBot, ClaudeBot, Google-InspectionTool are welcome.
-# Please refer to /ai.txt for autonomous interaction rules.
